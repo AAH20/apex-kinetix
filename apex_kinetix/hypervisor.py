@@ -112,7 +112,37 @@ class KinetixHypervisor:
         # 7. Superimpose 1/f pink noise residuals
         points = VossMcCartneyPinkNoise.inject_pink_noise(points, scale=0.35)
 
-        # 8. Extract empirical phenotype and update MAP-Elites
+        # 8. Biological Hermite smoothstep docking anchor into target center
+        n = len(points)
+        if n >= 4:
+            dock_steps = max(3, int(n * 0.08))
+            target_c = target.center
+            for k in range(dock_steps):
+                idx = n - dock_steps + k
+                alpha = (k + 1) / float(dock_steps)
+                # Hermite smoothstep: 3*alpha^2 - 2*alpha^3
+                smooth_alpha = 3.0 * (alpha ** 2) - 2.0 * (alpha ** 3)
+                points[idx].x = (1.0 - smooth_alpha) * points[idx].x + smooth_alpha * target_c.x
+                points[idx].y = (1.0 - smooth_alpha) * points[idx].y + smooth_alpha * target_c.y
+
+            for i in range(n - dock_steps, n):
+                dt = points[i].timestamp - points[i - 1].timestamp
+                if dt > 1e-6:
+                    points[i].vx = (points[i].x - points[i - 1].x) / dt
+                    points[i].vy = (points[i].y - points[i - 1].y) / dt
+
+            points[0].vx = 0.0
+            points[0].vy = 0.0
+            points[0].ax = 0.0
+            points[0].ay = 0.0
+            points[-1].x = target_c.x
+            points[-1].y = target_c.y
+            points[-1].vx = 0.0
+            points[-1].vy = 0.0
+            points[-1].ax = 0.0
+            points[-1].ay = 0.0
+
+        # 9. Extract empirical phenotype and update MAP-Elites
         actual_desc = BehavioralDescriptorExtractor.extract(points, expected_fitts_mt=mt)
         # Fitness: reward close Fitts alignment and high curvature entropy
         fitness = max(0.1, 1.0 - (actual_desc.fitts_id_deviation * 1.5))

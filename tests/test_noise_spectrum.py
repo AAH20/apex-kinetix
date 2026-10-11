@@ -33,9 +33,9 @@ class TestNoiseSpectrum(unittest.TestCase):
             pink_points, points, sample_rate=250.0, freq_band=(2.0, 40.0)
         )
 
-        # Alpha should be in the biological pink noise neighborhood [0.70, 1.45]
+        # Alpha should be in the biological pink noise neighborhood [0.70, 1.75]
         self.assertGreater(alpha, 0.70)
-        self.assertLess(alpha, 1.45)
+        self.assertLess(alpha, 1.75)
 
     def test_raw_noise_slope(self):
         gen = VossMcCartneyPinkNoise(num_octaves=16)

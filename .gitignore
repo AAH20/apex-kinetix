@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.DS_Store
+build/
+dist/
+*.egg-info/
+.pytest_cache/
